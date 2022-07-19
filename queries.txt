@@ -1,0 +1,72 @@
+/* Query 1 */
+-- which MediaType has earned the most according to the InvoiceLines?
+
+SELECT table1.MediaTypeName,
+       SUM(table1."UnitPrice X Quantity") AS totalUSD
+FROM
+  (SELECT a.Name AS ArtistName,
+          al.Title AS AlbumTitle,
+          t.TrackId,
+          t.Name AS TrackName,
+          m.Name AS MediaTypeName,
+          il.UnitPrice,
+          il.Quantity,
+          (il.UnitPrice * il.Quantity) AS "UnitPrice X Quantity"
+   FROM Artist a
+   JOIN Album al ON a.ArtistId = al.ArtistId
+   JOIN Track t ON al.AlbumId = t.AlbumId
+   JOIN MediaType m ON t.MediaTypeId = m.MediaTypeId
+   JOIN InvoiceLine il ON t.TrackId = il.TrackId) table1
+GROUP BY 1
+ORDER BY 2 DESC;
+
+/* Query 2 */
+-- The top 10 artists according to number of songs they made?
+SELECT a.ArtistId,
+       a.Name AS ArtistName,
+       count(a.Name) AS songs
+FROM Artist a
+JOIN Album al ON a.ArtistId = al.ArtistId
+JOIN Track t ON al.AlbumId = t.AlbumId
+GROUP BY 1,
+         2
+ORDER BY 3 DESC
+LIMIT 10;
+
+/* Query 3 */
+-- Which Playlist has earned the most according to the InvoiceLines (top 5)?
+
+SELECT table1.PlaylistId,
+       table1.PlaylistName,
+       sum(table1."UnitPrice X Quantity") AS totalUSD
+FROM
+  (SELECT p.PlaylistId,
+          p.Name AS PlaylistName,
+          il.UnitPrice,
+          il.Quantity,
+          (il.UnitPrice * il.Quantity) AS "UnitPrice X Quantity"
+   FROM Playlist p
+   JOIN PlaylistTrack pt ON p.PlaylistId = pt.PlaylistId
+   JOIN Track t ON pt.TrackId = t.TrackId
+   JOIN InvoiceLine il ON il.TrackId = t.TrackId) AS table1
+GROUP BY 1,
+         2
+ORDER BY 3 DESC
+LIMIT 5;
+
+/* Query 4 */
+-- Which Employee sold the most according to the Invoices?
+
+SELECT e.EmployeeId,
+       e.LastName,
+       e.FirstName,
+       e.Email,
+       sum(i.total) AS totalUSD
+FROM Employee e
+JOIN Customer c ON e.EmployeeId = c.SupportRepId
+JOIN Invoice i ON i.CustomerId = c.CustomerId
+GROUP BY 1,
+         2,
+         3,
+         4
+ORDER BY 5 DESC;
